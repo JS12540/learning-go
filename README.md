@@ -1,6 +1,12 @@
 # learning-go
 Learning go from sratch
 
+Refer this repos and template links
+1) https://github.com/DoWithLogic/golang-clean-architecture/#start-of-content
+2) https://pkg.go.dev/github.com/javiertelioz/clean-architecture-go
+3) https://pkg.go.dev/github.com/edgardnogueira/go-patterns
+   
+
 # Go (Golang) Setup Guide – Windows
 
 This guide covers:
