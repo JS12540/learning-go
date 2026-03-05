@@ -174,28 +174,31 @@ type QueryResponse struct {
 	MetadataUsed     bool             `json:"metadata_used,omitempty"`     // Whether metadata filtering was applied
 }
 
-// EmbeddingRequest is the structure for requesting embeddings from an OpenAI-compatible API.
+// EmbeddingRequest represents OpenAI embedding request
 type EmbeddingRequest struct {
 	Input interface{} `json:"input"` // string or []string
-	Model string      `json:"model"` // e.g., "text-embedding-ada-002" or your local model name
+	Model string      `json:"model"`
 }
 
-// EmbeddingResponseData holds a single embedding vector and its metadata.
+// EmbeddingResponseData contains one embedding
 type EmbeddingResponseData struct {
+	Object    string    `json:"object"`
 	Embedding []float32 `json:"embedding"`
 	Index     int       `json:"index"`
-	Object    string    `json:"object"`
 }
 
-// EmbeddingAPIResponse is the top-level structure for responses from the embedding API.
+// Usage stats returned by OpenAI
+type EmbeddingUsage struct {
+	PromptTokens int `json:"prompt_tokens"`
+	TotalTokens  int `json:"total_tokens"`
+}
+
+// EmbeddingAPIResponse represents OpenAI embedding response
 type EmbeddingAPIResponse struct {
+	Object string                  `json:"object"`
 	Data   []EmbeddingResponseData `json:"data"`
 	Model  string                  `json:"model"`
-	Object string                  `json:"object"`
-	Usage  struct {
-		PromptTokens int `json:"prompt_tokens"`
-		TotalTokens  int `json:"total_tokens"`
-	} `json:"usage"`
+	Usage  EmbeddingUsage          `json:"usage"`
 }
 
 // ChatCompletionMessage represents a single message in a chat completion request/response.
@@ -205,25 +208,32 @@ type ChatCompletionMessage struct {
 }
 
 // ChatCompletionRequest is the structure for requesting chat completions from an OpenAI-compatible API.
+// ChatCompletionRequest represents request payload
 type ChatCompletionRequest struct {
 	Model    string                  `json:"model"`
 	Messages []ChatCompletionMessage `json:"messages"`
-	Stream   bool                    `json:"stream,omitempty"`
 }
 
-// ChatChoice represents one of the completion choices from the API.
+// ChatChoice represents one completion result
 type ChatChoice struct {
 	Index        int                   `json:"index"`
 	Message      ChatCompletionMessage `json:"message"`
 	FinishReason string                `json:"finish_reason"`
 }
 
-// ChatCompletionResponse is the top-level structure for responses from the chat completion API.
+// ChatCompletionResponse is OpenAI API response
 type ChatCompletionResponse struct {
 	ID      string       `json:"id"`
 	Object  string       `json:"object"`
 	Created int64        `json:"created"`
 	Model   string       `json:"model"`
 	Choices []ChatChoice `json:"choices"`
-	// Usage   UsageInfo    `json:"usage"` // If applicable
+	Usage   Usage        `json:"usage"`
+}
+
+// Usage statistics from OpenAI
+type Usage struct {
+	PromptTokens     int `json:"prompt_tokens"`
+	CompletionTokens int `json:"completion_tokens"`
+	TotalTokens      int `json:"total_tokens"`
 }
