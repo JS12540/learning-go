@@ -1,0 +1,4 @@
+{
+    "server_port": "8080",
+    "default_top_k": 3
+} 
