@@ -121,6 +121,125 @@ func (r *RAGService) AddDocument(collectionName string, req *models.AddDocumentR
 	return nil
 }
 
+func (r *RAGService) Query(req *models.QueryRequest) (*models.QueryResponse, error) {
+	startTime := time.Now()
+
+	// Set defaults
+	if req.TopK <= 0 {
+		req.TopK = 5
+	}
+
+	// Query expansion
+	query := req.Query
+	if req.QueryExpansion {
+		expandedQuery := r.expandQuery(req.Query)
+		if expandedQuery != req.Query {
+			query = expandedQuery
+			log.Printf("Query expanded: '%s' -> '%s'", req.Query, query)
+		}
+	}
+
+	// Generate query embedding
+	queryEmbedding, err := r.embeddingClient.GetEmbedding(query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate query embedding: %w", err)
+	}
+
+	// Build metadata filters
+	filters := make(map[string]interface{})
+	for key, value := range req.MetadataFilters {
+		filters[key] = value
+	}
+
+	// Search for similar chunks
+	chunks, scores, err := r.vectorDB.QuerySimilarChunks(
+		req.CollectionName,
+		queryEmbedding,
+		req.TopK*2, // Get more for re-ranking
+		filters,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to search similar chunks: %w", err)
+	}
+
+	if len(chunks) == 0 {
+		return &models.QueryResponse{
+			Answer:         "I couldn't find any relevant information for your query.",
+			ProcessingTime: time.Since(startTime).Seconds(),
+			MetadataUsed:   len(req.MetadataFilters) > 0,
+		}, nil
+	}
+
+	// Apply semantic threshold filtering
+	if req.SemanticThreshold > 0 {
+		filteredChunks := make([]*models.EnhancedChunk, 0)
+		filteredScores := make([]float64, 0)
+
+		for i, score := range scores {
+			if score >= req.SemanticThreshold {
+				filteredChunks = append(filteredChunks, chunks[i])
+				filteredScores = append(filteredScores, score)
+			}
+		}
+
+		chunks = filteredChunks
+		scores = filteredScores
+
+		if len(chunks) == 0 {
+			return &models.QueryResponse{
+				Answer:         "No chunks met the semantic similarity threshold.",
+				ProcessingTime: time.Since(startTime).Seconds(),
+				MetadataUsed:   len(req.MetadataFilters) > 0,
+			}, nil
+		}
+	}
+
+	// Include parent chunks if requested
+	if req.IncludeParents {
+		chunks, scores = r.includeParentChunks(chunks, scores)
+	}
+
+	// Re-ranking
+	var rerankedScores []float64
+	if req.RerankerEnabled && len(chunks) > 1 {
+		chunks, rerankedScores = r.rerankChunks(query, chunks, scores)
+	}
+
+	// Limit to requested TopK after re-ranking
+	if len(chunks) > req.TopK {
+		chunks = chunks[:req.TopK]
+		scores = scores[:req.TopK]
+		if len(rerankedScores) > req.TopK {
+			rerankedScores = rerankedScores[:req.TopK]
+		}
+	}
+
+	// Prepare context for LLM
+	context := r.prepareContext(chunks)
+
+	// Generate answer using LLM
+	answer, err := r.generateAnswer(req.Query, context)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate answer: %w", err)
+	}
+
+	// Prepare response
+	response := &models.QueryResponse{
+		Answer:           answer,
+		RetrievedContext: r.extractChunkTexts(chunks),
+		EnhancedChunks:   chunks,
+		SimilarityScores: scores,
+		ProcessingTime:   time.Since(startTime).Seconds(),
+		MetadataUsed:     len(req.MetadataFilters) > 0,
+	}
+
+	if len(rerankedScores) > 0 {
+		response.RerankedScores = rerankedScores
+	}
+
+	return response, nil
+}
+
 func (r *RAGService) generateEmbeddings(chunks []*models.EnhancedChunk) error {
 	texts := make([]string, len(chunks))
 	for i, chunk := range chunks {
