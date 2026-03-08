@@ -8,7 +8,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"rag_system/config"
 	"rag_system/models"
 	"strings"
 	"time"
@@ -29,7 +28,7 @@ const openAIEmbeddingURL = "https://api.openai.com/v1/embeddings"
 func GetEmbeddings(texts []string, modelName string) ([][]float32, error) {
 
 	if modelName == "" {
-		modelName = config.AppConfig.EmbeddingModel
+		modelName = "text-embedding-3-small"
 	}
 
 	if len(texts) == 0 {

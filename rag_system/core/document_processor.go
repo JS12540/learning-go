@@ -21,10 +21,10 @@ const (
 	overlapRatio           = 0.15 // 15% overlap
 
 	// Document size categories
-	verySmallDoc = 1000  // < 1KB - keep as single chunk or minimal splits
-	smallDoc     = 3000  // < 3KB - conservative chunking
-	mediumDoc    = 10000 // < 10KB - normal chunking
-	largeDoc     = 50000 // < 50KB - aggressive chunking
+	verySmallDoc = 1000000  // < 1KB - keep as single chunk or minimal splits
+	smallDoc     = 3000000  // < 3KB - conservative chunking
+	mediumDoc    = 10000000 // < 10KB - normal chunking
+	largeDoc     = 50000000 // < 50KB - aggressive chunking
 
 	// Minimum chunks before splitting
 	minChunksThreshold = 3

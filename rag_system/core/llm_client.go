@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"rag_system/models"
@@ -16,6 +17,8 @@ func GenerateChatCompletion(messages []models.ChatCompletionMessage, modelName s
 	if modelName == "" {
 		modelName = "gpt-4.1-mini"
 	}
+
+	log.Println("Request recieved to call Openai")
 
 	reqPayload := models.ChatCompletionRequest{
 		Model:    modelName,
@@ -64,6 +67,8 @@ func GenerateChatCompletion(messages []models.ChatCompletionMessage, modelName s
 	if len(completionResponse.Choices) == 0 {
 		return "", fmt.Errorf("no response choices returned")
 	}
+
+	log.Println("Response from OpenAI:", completionResponse.Choices[0].Message.Content)
 
 	return completionResponse.Choices[0].Message.Content, nil
 }

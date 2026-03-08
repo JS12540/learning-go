@@ -3,11 +3,10 @@ module rag_system
 go 1.25.0
 
 require (
-	github.com/asg017/sqlite-vec-go-bindings v0.1.6
 	github.com/gin-contrib/cors v1.7.6
 	github.com/gin-gonic/gin v1.12.0
 	github.com/google/uuid v1.6.0
-	github.com/mattn/go-sqlite3 v1.14.34
+	github.com/qdrant/go-client v1.17.1
 )
 
 require (
@@ -39,5 +38,7 @@ require (
 	golang.org/x/net v0.51.0 // indirect
 	golang.org/x/sys v0.41.0 // indirect
 	golang.org/x/text v0.34.0 // indirect
-	google.golang.org/protobuf v1.36.10 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260209200024-4cfbd4190f57 // indirect
+	google.golang.org/grpc v1.78.0 // indirect
+	google.golang.org/protobuf v1.36.11 // indirect
 )

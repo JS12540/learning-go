@@ -7,10 +7,13 @@ import (
 	"os/signal"
 	"rag_system/api"
 	"rag_system/config"
+	"rag_system/core"
 	"syscall"
 )
 
 func main() {
+
+	core.LoadEnv(".env")
 	// Define command-line flags
 	configPath := flag.String("config", "config.json", "Path to configuration file")
 	showHelp := flag.Bool("help", false, "Show help information")
@@ -47,7 +50,6 @@ func main() {
 	log.Printf("Configuration loaded from: %s", *configPath)
 	log.Printf("Server will run on port %s", config.AppConfig.ServerPort)
 	log.Printf("Vector DB path: %s", config.AppConfig.VectorDBPath)
-	log.Printf("LlamaCPP Base URL: %s", config.AppConfig.LlamaCPPBaseURL)
 
 	// Initialize services
 	err := api.InitializeServices(config.AppConfig.VectorDBPath)

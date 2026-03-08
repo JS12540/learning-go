@@ -146,9 +146,12 @@ func (r *RAGService) Query(req *models.QueryRequest) (*models.QueryResponse, err
 	}
 
 	// Build metadata filters
-	filters := make(map[string]interface{})
-	for key, value := range req.MetadataFilters {
-		filters[key] = value
+	var filters map[string]interface{}
+	if len(req.MetadataFilters) > 0 {
+		filters = make(map[string]interface{})
+		for key, value := range req.MetadataFilters {
+			filters[key] = value
+		}
 	}
 
 	// Search for similar chunks

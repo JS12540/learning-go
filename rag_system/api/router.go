@@ -14,7 +14,7 @@ func SetupRoutes() *gin.Engine {
 	r.Use(gin.Recovery())
 	// Example for CORS (needs import "github.com/gin-contrib/cors"):
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:3000"} // Adjust for your Electron app's origin
+	config.AllowOrigins = []string{"http://localhost:5173"} // Adjust for your Electron app's origin
 	r.Use(cors.New(config))
 
 	// Health check
