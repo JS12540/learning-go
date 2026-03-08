@@ -1,8 +1,6 @@
 # 🤖 Advanced RAG System with Go
 
 [![Go Version](https://img.shields.io/badge/Go-1.19+-blue)](https://golang.org/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![SQLite-vec](https://img.shields.io/badge/Vector%20DB-SQLite--vec-orange)](https://github.com/asg017/sqlite-vec)
 
 A sophisticated **Retrieval Augmented Generation (RAG)** system built with Go, featuring intelligent adaptive chunking, hierarchical document processing, semantic search, flexible LLM integration, and command-line configuration management.
 
@@ -67,8 +65,8 @@ A sophisticated **Retrieval Augmented Generation (RAG)** system built with Go, f
 
 ### 1. Clone & Install
 ```bash
-git clone https://github.com/aruntemme/go-rag.git
-cd go-rag
+git clone https://github.com/JS12540/learning-go
+cd rag_system
 go mod tidy
 ```
 
@@ -86,25 +84,62 @@ Create `config.json`:
 ```json
 {
   "server_port": "8080",
-  "llamacpp_base_url": "http://localhost:8091/v1",
-  "embedding_model": "nomic-embed-text-v1.5",
-  "chat_model": "qwen3:8b", 
-  "vector_db_path": "./rag_database.db",
   "default_top_k": 3
 }
 ```
 
-### 4. Start Embedding Server
-```bash
-# Example with llama.cpp
-./server -m your-model.gguf --host 0.0.0.0 --port 8091
 
-# Or use OpenAI API
-# Set OPENAI_API_KEY and use https://api.openai.com/v1
+## 4. Environment Variables
 
-# Or use Ollama
-ollama serve
+The RAG system uses these environment variables for external services:
+
+| Variable         | Description                                            | Example                 |
+| ---------------- | ------------------------------------------------------ | ----------------------- |
+| `QDRANT_HOST`    | URL of your Qdrant server                              | `**.aws.cloud.qdrant.io` |
+| `QDRANT_API_KEY` | API key for your Qdrant instance                       | `secretapikey`        |
+| `OPENAI_API_KEY` | API key for OpenAI-compatible embedding or LLM service | `sk-xxxxxxxxxxxxxxxxx`  |
+
+> 💡 You can place these in a `.env` file in your project root for convenience:
+
 ```
+QDRANT_HOST=**.aws.cloud.qdrant.io
+QDRANT_API_KEY=mysecretapikey
+OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxx
+```
+
+Your Go application will automatically read these using `os.Getenv()`.
+
+---
+
+## 🐳 Docker Instructions
+
+### **Step 1: Build the Docker image**
+
+```bash
+docker build -t rag_system:latest .
+```
+
+### **Step 2: Run the container with environment variables**
+
+Option 1: Using `.env` file:
+
+```bash
+docker run -p 8080:8080 --env-file .env rag_system:latest
+```
+
+Option 2: Passing variables directly:
+
+```bash
+docker run -p 8080:8080 \
+  -e QDRANT_HOST=http://localhost:6333 \
+  -e QDRANT_API_KEY=mysecretapikey \
+  -e OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxx \
+  rag_system:latest
+```
+
+* `-p 8080:8080` → exposes the container port 8080 on your host
+* The server will read your `.env` variables or the ones passed via `-e` flags
+
 
 ### 5. Run the Application
 
@@ -331,10 +366,6 @@ CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o rag-server-m
 ```json
 {
   "server_port": "8080",
-  "llamacpp_base_url": "http://localhost:8091/v1",
-  "embedding_model": "nomic-embed-text-v1.5",
-  "chat_model": "qwen3:8b",
-  "vector_db_path": "./rag_database.db",
   "default_top_k": 3
 }
 ```
@@ -343,60 +374,19 @@ CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o rag-server-m
 ```json
 {
   "server_port": "80",
-  "llamacpp_base_url": "https://your-llm-api.com/v1",
-  "embedding_model": "text-embedding-ada-002",
-  "chat_model": "gpt-4",
-  "vector_db_path": "/data/rag_database.db",
   "default_top_k": 5
 }
 ```
 
-### Docker Deployment (Optional)
-```dockerfile
-FROM golang:1.23-alpine AS builder
-RUN apk add --no-cache gcc musl-dev sqlite-dev
-WORKDIR /app
-COPY . .
-RUN CGO_ENABLED=1 go build -ldflags="-s -w" -o rag-server .
-
-FROM alpine:latest
-RUN apk --no-cache add ca-certificates sqlite
-WORKDIR /root/
-COPY --from=builder /app/rag-server .
-COPY configs/ ./configs/
-EXPOSE 8080
-CMD ["./rag-server", "-config=configs/production.json"]
-```
-
-```bash
-# Build and run with custom config
-docker build -t rag-server .
-docker run -p 8080:8080 -v $(pwd)/data:/data rag-server ./rag-server -config=/data/custom.json
-```
-
-### Environment-Specific Deployments
-```bash
-# Development
-./rag-server -config=configs/dev.json
-
-# Staging
-./rag-server -config=configs/staging.json
-
-# Production
-./rag-server -config=configs/production.json
-```
-
 ## 🙏 Acknowledgments
 
-- [SQLite-vec](https://github.com/asg017/sqlite-vec) for high-performance vector storage
+- [Qdrant](https://github.com/qdrant/go-client) for high-performance vector storage
 - [Gin](https://github.com/gin-gonic/gin) for the web framework
-- [LlamaCPP](https://github.com/ggerganov/llama.cpp) for embedding and LLM services
+- [OpenAI](https://github.com/sashabaranov/go-openai) for embedding and LLM services
 
 ## 📞 Support
 
 - 📖 **Documentation**: Check [API_REFERENCE.md](API_REFERENCE.md)
-- 🐛 **Issues**: [GitHub Issues](https://github.com/aruntemme/go-rag/issues)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/aruntemme/go-rag/discussions)
 
 ---
 
